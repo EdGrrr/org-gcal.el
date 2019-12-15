@@ -2,6 +2,7 @@
 
 ;; Author: myuhe <yuhei.maeda_at_gmail.com>
 ;; URL: https://github.com/kidd/org-gcal.el
+;; Package-Version: 20191018.921
 ;; Version: 0.3
 ;; Maintainer: Raimon Grau <raimonster@gmail.com>
 ;; Copyright (C) :2014 myuhe all rights reserved.
@@ -411,9 +412,9 @@ Does not preserve point."
 
 (defun org-gcal--put-id (pom calendar-id event-id)
   "\
-Store a canonical ID generated from CALENDAR-ID and EVENT-ID in the \":ID:\"
+Store a canonical ID generated from CALENDAR-ID and EVENT-ID in the \":GID:\"
 property at point-or-marker POM.
-The existing \":ID\" entries at POM, if any, will be inserted after the
+The existing \":GID\" entries at POM, if any, will be inserted after the
 canonical ID, so that existing links won’t be broken."
   (org-with-point-at pom
     (org-gcal--back-to-heading)
@@ -421,22 +422,22 @@ canonical ID, so that existing links won’t be broken."
           (entry-id (org-gcal--format-entry-id calendar-id event-id)))
       ;; First delete all existing IDs and insert canonical ID. This will put
       ;; it as the first ID in the entry.
-      (org-entry-delete (point) "ID")
-      (org-entry-put (point) "ID" entry-id)
-      ;; Now find the ID just inserted and insert the other IDs in their
-      ;; original order.
-      (let* ((range (org-get-property-block)))
-        (goto-char (car range))
-        (re-search-forward
-         (org-re-property "ID" nil t) (cdr range) t)
-        ;; See ‘org-re-property’ - match 5 is the end of the line.
-        (goto-char (match-end 5))
-        (let ((indentation (match-string-no-properties 4)))
-          (mapc
-           (lambda (id)
-             (newline)
-             (insert indentation ":ID: " id))
-           (cl-remove-if (lambda (x) (string= x entry-id)) ids)))))))
+      ;(org-entry-delete (point) "ID")
+      (org-entry-put (point) "GID" entry-id))))
+      ;; ;; Now find the ID just inserted and insert the other IDs in their
+      ;; ;; original order.
+      ;; (let* ((range (org-get-property-block)))
+      ;;   (goto-char (car range))
+      ;;   (re-search-forward
+      ;;    (org-re-property "GID" nil t) (cdr range) t)
+      ;;   ;; See ‘org-re-property’ - match 5 is the end of the line.
+      ;;   (goto-char (match-end 5))
+      ;;   (let ((indentation (match-string-no-properties 4)))
+      ;;     (mapc
+      ;;      (lambda (id)
+      ;;        (newline)
+      ;;        (insert indentation ":ID: " id))
+      ;;      (cl-remove-if (lambda (x) (string= x entry-id)) ids)))))))
 
 (defun org-gcal--event-id-from-entry-id (entry-id)
   "Parse an ENTRY-ID created by ‘org-gcal--format-entry-id’ and return EVENT-ID."
@@ -497,7 +498,7 @@ If SKIP-EXPORT is not nil, don’t overwrite the event on the server."
            (smry (org-element-property :title elem))
            (loc (org-element-property :LOCATION elem))
            (event-id (org-gcal--event-id-from-entry-id
-                      (org-element-property :ID elem)))
+                      (org-element-property :GID elem)))
            (etag (org-element-property
                   (org-gcal--property-from-name org-gcal-etag-property)
                   elem))
@@ -588,7 +589,7 @@ If SKIP-EXPORT is not nil, don’t overwrite the event on the server."
                   (org-gcal--property-from-name org-gcal-etag-property)
                   elem))
            (event-id (org-gcal--event-id-from-entry-id
-                      (org-element-property :ID elem))))
+                      (org-element-property :GID elem))))
       (if (and event-id
                (y-or-n-p (format "Do you really want to delete event?\n\n%s\n\n" smry)))
           (deferred:$
